@@ -41,14 +41,42 @@ router.post("/products", (req, res) => {
 	// Product Collection에 들어있는 모든 상품을 찾아온다.
 	let limit = req.body.limit ? parseInt(req.body.limit):20;
 	let skip = req.body.skip ? parseInt(req.body.skip):0;
-
-	Product.find()
-	.populate('writer')
-	.skip(skip)
-	.limit(limit)
-	.exec((err,productList)=>{
-		if(err) return res.status(400).json({success:false, err});
-		return res.status(200).json({success:true,productList,postSize:productList.length});
-	})
+	let term = req.body.searchTerm;
+	let findArg = {};
+	for(let key in req.body.filters) {
+		if(req.body.filters[key].length>0){
+			if (key === 'price') {
+				findArg[key] = {
+					//Greater than equal (mongoDB)
+					$gte: req.body.filters[key][0],
+					//Less than equal (mongoDB)
+					$lte: req.body.filters[key][1]
+				}
+			}else{
+				findArg[key] = req.body.filters[key];
+			}
+		}
+	}
+	console.log('%cproduct.js line:50 findArg', 'color: #007acc;', findArg);
+	if(term){
+		Product.find(findArg)
+		.find({$text:{$search: term}})
+		.populate('writer')
+		.skip(skip)
+		.limit(limit)
+		.exec((err,productList)=>{
+			if(err) return res.status(400).json({success:false, err});
+			return res.status(200).json({success:true,productList,postSize:productList.length});
+		})	
+	}else{
+		Product.find(findArg)
+		.populate('writer')
+		.skip(skip)
+		.limit(limit)
+		.exec((err,productList)=>{
+			if(err) return res.status(400).json({success:false, err});
+			return res.status(200).json({success:true,productList,postSize:productList.length});
+		})
+	}
 });
 module.exports = router;
