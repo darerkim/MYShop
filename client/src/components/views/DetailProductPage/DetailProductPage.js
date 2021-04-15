@@ -8,9 +8,9 @@ function DetailProductPage(props) {
   const [Product, setProduct] = useState({});
   const productId = props.match.params.productId;
   useEffect(() => {
-    console.log('%cDetailProductPage.js line:7 object', 'color: #007acc;');
     Axios.get(`/api/product/products_by_id?id=${productId}&type=array`)
     .then(response=>{
+      console.log('%cDetailProductPage.js line:13 response.data[0]', 'color: #007acc;', response.data[0]);
       setProduct(response.data[0]);
     })
     .catch(err => alert(err))
